@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jkr.modules.sys.user.mapper.SysUserUnitMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.jkr.modules.sys.user.model.SysUserUnit">
+        <result column="user_id" property="userId"/>
+        <result column="role_id" property="unitId"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        user_id, unit_id
+    </sql>
+
+    <!-- 通用查询结果列 别名 -->
+    <sql id="Base_Column_List_Alias">
+        ur.user_id AS userId,ur.unit_id AS unitId
+    </sql>
+
+    <delete id="deleteUserUnits" parameterType="String">
+        delete
+        from sys_user_unit
+        where user_id=#{userId}
+    </delete>
+</mapper>

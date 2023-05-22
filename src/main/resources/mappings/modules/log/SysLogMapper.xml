@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jkr.modules.sys.log.mapper.SysLogMapper">
+
+    <!--日志列表-->
+    <select id="findLogPage" resultType="com.jkr.modules.sys.log.model.SysLog">
+        SELECT
+            su.login_name AS loginName,
+            su.name AS name,
+            sl.id,
+            sl.modal AS modal,
+            sl.create_date AS createDate,
+            sl.ip AS ip,
+            sl.time_cost AS timeCost,
+            sl.request_status AS requestStatus
+        FROM
+            sys_log sl
+            LEFT JOIN sys_user su ON su.id = sl.create_by
+        WHERE
+            sl.del_flag = '0'
+        <if test="sysLog.loginName != null and sysLog.loginName != ''">
+            AND INSTR(su.login_name,#{sysLog.loginName})
+        </if>
+        <if test="sysLog.startTime !='' and sysLog.startTime !=null">
+            AND sl.create_date &gt;= CONCAT(#{sysLog.startTime},' ','00:00:00')
+        </if>
+        <if test="sysLog.endTime !='' and sysLog.endTime !=null">
+            AND sl.create_date &lt;= CONCAT(#{sysLog.endTime},' ','23:59:59')
+        </if>
+        ORDER BY sl.create_date DESC
+    </select>
+
+</mapper>

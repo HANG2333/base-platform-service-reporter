@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jkr.modules.sys.user.mapper.SysUserMapper">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        user_id
+        , username, password, nick_name, user_type, email, phone_number,user_job, sex, avatar_path, user_status,audit_status,
+        public_key_x,public_key_y,unit_id,create_by, create_date, update_by, update_date, del_flag, remark
+    </sql>
+
+    <!-- 通用查询结果列 别名 -->
+    <sql id="Base_Column_List_Alias">
+        user.user_id AS userId,user.username AS username,user.password,user.nick_name AS nickName,user.user_type AS
+        userType,user.email,user.phone_number AS phoneNumber,user.user_job AS userJob,user.sex,user.avatar_path AS avatarPath,user.user_status AS
+        userStatus, user.public_key_x AS publicKeyX,user.public_key_y AS publicKeyY,user.create_by AS createBy,user.create_date AS createDate,user.update_by AS updateBy,user.update_date
+        AS updateDate,user.del_flag AS delFlag,user.remark,user.unit_id AS unitId,user.flag AS flag,user.audit_status AS auditStatus
+    </sql>
+    <sql id="Base_Column_List_Role_Alias">
+        role
+        .
+        role_id
+        AS roleId,role.role_name AS roleName,role.role_key AS roleKey,role.role_status AS
+        roleStatus,role.create_by AS createBy,role.create_date AS createDate,role.update_by AS updateBy,role.update_date
+        AS updateDate,role.del_flag AS delFlag,role.remark
+    </sql>
+    <sql id="Base_Column_List_Group_Alias">
+        gr
+        .
+        user_group_id
+        AS userGroupId,gr.user_group_name AS userGroupName,gr.create_by AS createBy,gr.create_date AS
+        createDate,gr.update_by AS updateBy,gr.update_date AS updateDate,gr.del_flag AS delFlag,gr.remark
+    </sql>
+
+    <!-- 用户管理列表查询 -->
+    <select id="pageList" resultType="com.jkr.modules.sys.user.model.dto.UserDTO">
+        SELECT
+            su.id,
+            su.login_name AS loginName,
+            su.`name` AS `name`,
+            su.unit_name AS unitName,
+            su.dept_name AS deptName,
+            GROUP_CONCAT( sr.`name` ) AS roleNames
+        FROM
+            sys_user su
+        LEFT JOIN sys_user_role sur ON su.id = sur.user_id
+        LEFT JOIN sys_role sr ON sur.role_id = sr.id
+        WHERE su.del_flag = 0
+        <!-- 登录名：模糊查询 -->
+        <if test="userDto.loginName != '' and userDto.loginName != null">
+            AND INSTR(su.login_name, #{userDto.loginName}) > 0
+        </if>
+        <!-- 姓名：模糊查询 -->
+        <if test="userDto.name != '' and userDto.name != null">
+            AND INSTR(su.name, #{userDto.name}) > 0
+        </if>
+        <!-- 单位：模糊查询 -->
+        <if test="userDto.unitName != '' and userDto.unitName != null">
+            AND INSTR(su.unit_name, #{userDto.unitName}) > 0
+        </if>
+        <!-- 处室：模糊查询 -->
+        <if test="userDto.deptName != '' and userDto.deptName != null">
+            AND INSTR(su.dept_name, #{userDto.deptName}) > 0
+        </if>
+        <!-- 角色：模糊查询 -->
+        <if test="userDto.name != '' and userDto.name != null">
+            AND INSTR(su.name, #{userDto.name}) > 0
+        </if>
+        GROUP BY su.id
+    </select>
+
+    <!-- 根据用户id查询已授权的角色列表 -->
+    <select id="getAuthRoleListByUserId" resultType="com.jkr.modules.sys.role.model.SysRole">
+        SELECT
+            sr.id
+        FROM
+            sys_user_role sur
+        LEFT JOIN sys_role sr ON sur.role_id = sr.id
+        WHERE
+            sr.del_flag = 0
+        AND user_id = #{userId}
+    </select>
+
+    <!-- 查询用户角色Code集合 -->
+    <select id="getAuthRoleSetByUserId" resultType="java.lang.String">
+        SELECT
+            DISTINCT sr.`code` AS roleKey
+        FROM sys_user_role sur
+        LEFT JOIN sys_role sr ON sur.role_id = sr.id
+        WHERE
+          sur.user_id = #{userId}
+          AND sr.del_flag = 0
+          AND sr.status = 0
+    </select>
+
+    <!-- 查询菜单Code集合 -->
+    <select id="getMenuListByUserId" resultType="java.lang.String">
+        SELECT
+            menu.code AS menuCode
+        FROM
+            sys_menu menu
+        LEFT JOIN sys_role_menu srm ON menu.id = srm.menu_id
+        LEFT JOIN sys_user_role sur ON srm.role_id = sur.role_id
+        WHERE
+          sur.user_id = #{userId}
+          AND menu.del_flag = 0
+          AND menu.`status` = 0
+          AND menu.code IS NOT NULL
+    </select>
+
+    <!-- 根据用户Id获取所有菜单 -->
+    <select id="getAllMenuByUserId" resultType="com.jkr.modules.sys.menu.model.SysMenu">
+        SELECT
+               distinct
+            menu.*
+        FROM
+            sys_menu menu
+        LEFT JOIN sys_role_menu srm ON menu.id = srm.menu_id
+        LEFT JOIN sys_user_role sur ON srm.role_id = sur.role_id
+        WHERE
+          sur.user_id = #{userId}
+          AND menu.type IN ('2')
+          AND menu.del_flag = 0
+          AND menu.`status` = 0
+        ORDER By menu.location
+    </select>
+
+    <resultMap id="allMenuBtnMap" type="com.jkr.modules.sys.menu.model.dto.MenuBtnDTO">
+        <result column="parentCode" property="parentCode"/>
+        <collection property="code" ofType="com.jkr.modules.sys.menu.model.dto.ChildBtn">
+            <result column="code" property="code"/>
+        </collection>
+    </resultMap>
+
+    <!-- 根据用户Id查询权限菜单的所有按钮权限List -->
+    <select id="getAllMenuBtnByUserId" resultMap="allMenuBtnMap">
+        SELECT
+            menu.`code` parentCode,
+            menu2.`code`
+        FROM
+            sys_menu menu
+                LEFT JOIN sys_role_menu srm ON menu.id = srm.menu_id
+                LEFT JOIN sys_user_role sur ON srm.role_id = sur.role_id
+                LEFT JOIN sys_menu menu2 ON menu.id = menu2.parent_id
+        WHERE
+            menu.type = '1'
+          AND menu.del_flag = 0
+          AND menu.`status` = 0
+          AND sur.user_id = #{userId}
+    </select>
+
+    <select id="getUserRoleList" resultType="java.util.Map">
+        SELECT sr.role_name    AS roleName,
+               sr.`role_key`   AS roleKey,
+               sr.`is_leader`  AS isLeader,
+               sr.`is_advance` AS isAdvance,
+               sr.`is_all`     AS isAll
+        FROM sys_user_info sui
+                 LEFT JOIN sys_user_role sur
+                           ON sui.user_id = sur.user_id
+                 LEFT JOIN sys_role sr
+                           ON sur.role_id = sr.role_id
+        WHERE sui.`user_id` = #{userId}
+          AND sr.`del_flag` = '0'
+          AND sr.`role_status` = '0'
+
+    </select>
+
+    <!-- 用户分页查询-->
+    <select id="pageListWithUnit" resultType="java.util.Map">
+        SELECT
+        <include refid="Base_Column_List_Alias"></include>,
+        unit.unit_name AS unitName
+        FROM
+        sys_user_info user
+        LEFT JOIN
+        sys_unit unit
+        ON user.unit_id = unit.id
+        ${ew.customSqlSegment}
+    </select>
+
+    <select id="getUserInfoByUserId" resultType="com.jkr.modules.sys.user.model.SysUser">
+        SELECT user_id,
+               username,
+               PASSWORD,
+               nick_name,
+               user_type,
+               email,
+               phone_number,
+               user_job,
+               sex,
+               avatar_path,
+               user_status,
+               create_by,
+               create_date,
+               update_by,
+               update_date,
+               del_flag,
+               remark,
+               unit_id
+        FROM sys_user_info
+        WHERE del_flag = 0
+          AND user_status = 0
+          AND user_id = #{userId}
+
+    </select>
+
+    <select id="getUserIdByLoginName" resultType="java.lang.String">
+        select sui.user_id
+        from sys_user_info sui
+        where sui.nick_name = #{loginName}
+    </select>
+
+    <select id="findAllMenuBtnByUserId" resultType="com.jkr.modules.sys.menu.model.SysMenu">
+        SELECT
+            menu.`code` AS code,
+            menu2.`code` AS parentCode
+        FROM
+            sys_menu menu
+                LEFT JOIN sys_role_menu srm ON menu.id = srm.menu_id
+                LEFT JOIN sys_user_role sur ON srm.role_id = sur.role_id
+                LEFT JOIN sys_menu menu2 ON menu.parent_id = menu2.id
+        WHERE
+            menu.type = '3'
+          AND menu.del_flag = 0
+          AND menu.`status` = 0
+          AND sur.user_id = #{userId}
+    </select>
+
+
+</mapper>

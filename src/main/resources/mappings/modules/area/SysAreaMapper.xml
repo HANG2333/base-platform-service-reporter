@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jkr.modules.sys.area.mapper.SysAreaMapper">
+
+    <!-- 删除自己及下级 -->
+    <update id="deleteSelfAndChildren">
+        UPDATE
+            sys_area
+        SET del_flag    = 1,
+            update_by   = #{updateBy},
+            update_date = #{updateDate}
+        WHERE (id = #{id} OR INSTR(parent_ids, #{id}) > 0)
+    </update>
+
+
+
+    <!--通过type查询区域-->
+    <select id="getAreaByType" resultType="com.jkr.modules.sys.area.model.SysArea">
+        SELECT
+	        id,
+	        name,
+	        code,
+	        type,
+	        parent_id AS parentId,
+	        parent_ids AS parentIds,
+	        location AS location
+        FROM
+	         sys_area
+        WHERE
+	         del_flag = '0'
+            <if test="type!=''and type!=null">
+                AND type = #{type}
+            </if>
+            <if test="parentId!=''and parentId!=null">
+                AND parent_id = #{parentId}
+            </if>
+    </select>
+</mapper>

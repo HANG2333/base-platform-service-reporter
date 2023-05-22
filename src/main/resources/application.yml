@@ -1,0 +1,6 @@
+server:
+  port: 9619
+
+spring:
+  profiles:
+    active: dev

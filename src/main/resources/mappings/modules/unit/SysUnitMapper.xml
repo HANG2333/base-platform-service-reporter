@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jkr.modules.sys.unit.mapper.SysUnitMapper">
+
+
+    <sql id="Base_Column_List_Alias">
+        unit.id,
+        unit.parent_id,
+        unit.parent_ids,
+        unit.name,
+        unit.code,
+        unit.type,
+        unit.area_id,
+        unit.area_name,
+        unit.location,
+        unit.contact,
+        unit.phone,
+        unit.create_by,
+        unit.create_date,
+        unit.update_by,
+        unit.update_date,
+        unit.del_flag,
+        unit.remark
+    </sql>
+
+    <select id="findUnitDataById" resultType="com.jkr.modules.sys.unit.model.SysUnit">
+        SELECT
+            unit.id,
+            unit.parent_id,
+            unit.parent_ids,
+            unit.name,
+            unit.code,
+            unit.type,
+            unit.area_id,
+            area.name AS areaName,
+            unit.location,
+            unit.contact,
+            unit.phone,
+            unit.create_by,
+            unit.create_date,
+            unit.update_by,
+            unit.update_date,
+            unit.del_flag,
+            unit.remark,
+            dict.dic_value AS typeName
+        FROM
+            sys_unit unit
+        LEFT JOIN
+            sys_area area ON area.id = unit.area_id
+        LEFT JOIN
+            sys_dict dict ON unit.type = dict.dic_code AND dict.dic_type = 'unit_type_group'
+        ${ew.customSqlSegment}
+    </select>
+
+    <update id="deleteUnitDataById">
+        UPDATE
+            sys_unit
+        SET del_flag    = 1,
+            update_by   = #{updateBy},
+            update_date = #{updateDate}
+        WHERE (id = #{id} OR INSTR(parent_ids, #{id}) > 0)
+    </update>
+</mapper>

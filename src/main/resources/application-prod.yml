@@ -1,0 +1,107 @@
+# 生产环境配置
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/base-service?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+    username: root
+    password: root
+    druid:
+      # 连接池的配置信息
+      # 初始化大小，最小，最大
+      initial-size: 5
+      min-idle: 5
+      maxActive: 20
+      # 配置获取连接等待超时的时间
+      maxWait: 60000
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 300000
+      validationQuery: SELECT x
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+      filters: stat,wall,slf4j
+      connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
+      web-stat-filter:
+        enabled: true
+        url-pattern: "/*"
+        exclusions: "*.js,*.gif,*.jpg,*.bmp,*.png,*.css,*.ico,/druid/*"
+      stat-view-servlet:
+        url-pattern: "/druid/*"
+        reset-enable: false
+        login-username: admin
+        login-password: 123456
+  redis:
+    host: 192.168.187.188
+    port: 6379
+    database: 11
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+
+#MyBatis-plus
+mybatis-plus:
+  mapper-locations: classpath:mappings/modules/*/*Mapper.xml
+  #实体扫描，多个package用逗号或者分号分隔
+  type-aliases-package: com.jkr.modules.*.model
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+  configuration:
+    #不加这个查询数据为空时，字段将被隐藏
+    call-setters-on-nulls: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    jdbc-type-for-null: null
+
+
+#fastDFS配置
+fdfs:
+  soTimeout: 100000
+  connectTimeout: 100000
+  #trackerServer地址
+  trackerList: 192.168.187.188:22122
+  #NG地址，用于文件下载映射访问
+  web-url: http://192.168.187.188:8888
+  #storageServer服务IP
+  storageServerIp: 192.168.187.188
+  #storageServer服务端口
+  storageServerPort: 23000
+  #文件存放地址例M0-x（不同项目不一样）
+  mx: 5
+
+
+
+api:
+  boot:
+    swagger:
+      title: Swagger2 文档
+      description: "restful Api"
+      version: "1.0"
+      license: ""
+      license-url: ""
+      contact:
+        name: jkr
+        website: ""
+        email: ""
+      authorization:
+        name: oauth2.0 认证头信息
+
+ignored: /login,/v2/*,/webjars/**,/**/favicon.ico,/swagger-resources/**,/druid/**,/dict/getDictListByType,/dict/getDictTreeListByGroupType,/swagger-ui.html,/file/*,/app/login,/module/upgrade/appCheckAppExits,/module/enterprise/*,/module/person/*,/accessToken
+
+#安全拦截
+refererUrl: localhost:9611
+#refererUrl: 192.168.189.239:9612
+
+#token 相关配置
+jwt:
+  # token过期时间，单位（毫秒），20m=1200000ms, 30m=1800000ms, 60m=3600000ms
+  expires: 3600000
+  # 是否单用户登录（用户重复登录后，之前登录的用户会被强制下线）true：不允许重复登录；false：允许重复登录
+  singleLogin: false
