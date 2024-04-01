@@ -8,9 +8,10 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.189.239:3306/base-platform-service?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
-    username: leader01
-    password: Jkr@dev123.01
+    url: jdbc:mysql://localhost:3306/base-platform-database?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
+    # 连接数据库的用户名和密码
+    username: root
+    password: Mysql123456
     druid:
       # 连接池的配置信息
       # 初始化大小，最小，最大
@@ -39,9 +40,10 @@ spring:
         login-username: admin
         login-password: 123456
   redis:
-    host: 192.168.183.147
+    #host: 192.168.187.188
+    host: 127.0.0.1
     port: 6379
-    database: 0
+    database: 8
 
 #MyBatis-plus
 mybatis-plus:
@@ -76,7 +78,7 @@ fdfs:
 ignored: /login,/v2/*,/webjars/**,/**/favicon.ico,/swagger-resources/**,/druid/**,/dict/getDictListByType,/dict/getDictTreeListByGroupType,/swagger-ui.html,/file/*,/app/login,/module/upgrade/appCheckAppExits,/module/enterprise/*,/module/person/*,/accessToken
 
 #安全拦截
-refererUrl: localhost,127.0.0.1,192.168.183.132
+refererUrl: localhost,127.0.0.1,192.168.183.132,192.168.137.1
 
 #token 相关配置
 jwt:
